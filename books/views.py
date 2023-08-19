@@ -1,6 +1,7 @@
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render
 from django.urls import reverse_lazy
-from django.views.generic import ListView, DetailView, DeleteView, CreateView
+from django.views.generic import ListView, DetailView, DeleteView, CreateView, TemplateView
 from books.forms import BookForm
 from books.models import Book
 
@@ -8,7 +9,7 @@ from books.models import Book
 # Create your views here.
 
 
-class BookListView(ListView):
+class BookListView(LoginRequiredMixin, ListView):
     model = Book
     context_object_name = 'books'
     paginate_by = 5
@@ -31,3 +32,5 @@ class BookCreateView(CreateView):
     form_class = BookForm
     template_name = 'books/book_create.html'
     success_url = reverse_lazy('book-list')
+
+

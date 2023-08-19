@@ -1,3 +1,58 @@
-from django.shortcuts import render
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth import authenticate, login, logout
+from django.shortcuts import render, redirect
+from django.views import View
+from django.views.generic import TemplateView
+from rest_framework.request import Request
+from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
+from accounts.forms import LoginForm
+
 
 # Create your views here.
+
+
+# todo : login - logout - signup
+class LogoutView(LoginRequiredMixin, View):
+    def get(self, request):
+        print("yek")
+        logout(request)
+        print("222")
+        return redirect('login')
+
+
+class LoginView(APIView):
+    def get(self, request: Request):
+        # todo : fix if statement
+        if request.user.is_authenticated:
+            return redirect('book-list')
+        context = {'login_form': LoginForm()}
+        return render(request, 'accounts/login.html', context)
+
+    def post(self, request):
+        if request.user.is_authenticated:
+            return redirect('index')
+
+        login_form = LoginForm(request.data)
+        if login_form.is_valid():
+            username = login_form.cleaned_data['username']
+            password = login_form.cleaned_data['password']
+
+            user = authenticate(username=username, password=password)
+            if user is not None:
+                login(request, user)
+                refresh = RefreshToken.for_user(user)
+                access_token = str(refresh.access_token)
+                return redirect('index')
+                # return Response({'access_token': access_token})
+            else:
+                login_form.add_error('username', 'invalid username or password')
+                return render(request, 'accounts/login.html',
+                              {'login_form': login_form, })
+        else:
+            login_form.add_error('username', 'invalid username or password')
+            return render(request, 'accounts/login.html', {'login_form': login_form})
+
+
+class IndexPageView(LoginRequiredMixin, TemplateView):
+    template_name = 'accounts/index.html'

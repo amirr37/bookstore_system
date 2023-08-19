@@ -1,0 +1,17 @@
+{% extends 'shared/base.html' %}
+{% block title %}
+    index page
+{% endblock %}
+{% block content %}
+    <h1>Welcome to the Home Page</h1>
+
+    <!-- Logout Button -->
+    <a href="{% url 'logout' %}" class="nav-link" title="Logout">logout</a>
+
+
+    <!-- Profile Page Link -->
+    <a href="#">Go to Profile</a>
+
+    <!-- Book List Page Link -->
+    <a href="{% url 'book-list' %}">Go to Book List</a>
+{% endblock %}
