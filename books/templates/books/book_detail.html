@@ -1,0 +1,17 @@
+{% extends 'shared/base.html' %}
+
+{% block title %}
+    {{ book.title }}
+{% endblock %}
+
+
+{% block content %}
+
+
+    <h1>{{ book.title }}</h1>
+    <p>Authors: {{ book.authors }}</p>
+    <p>Genre: {{ book.genre }}</p>
+    <p>Publication Date: {{ book.publication_date }}</p>
+    <p>ISBN: {{ book.isbn }}</p>
+    <p>Price: {{ book.price }}</p>
+{% endblock %}

@@ -5,7 +5,10 @@
 {% endblock %}
 {% block content %}
     {% for book in books %}
-        <h6>{{ book.title }} by {{ book.authors }}</h6>
+        <a href="{% url  'book-detail' book.slug %}">
+            <h3>{{ book.title }} by {{ book.authors }}</h3>
+
+        </a>
     {% endfor %}
 
     <div class="pagination">
