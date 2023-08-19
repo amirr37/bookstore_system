@@ -1,6 +1,7 @@
 from django.shortcuts import render
-from django.views.generic import ListView, DetailView
-
+from django.urls import reverse_lazy
+from django.views.generic import ListView, DetailView, DeleteView, CreateView
+from books.forms import BookForm
 from books.models import Book
 
 
@@ -18,5 +19,17 @@ class BookDetailView(DetailView):
     template_name = 'books/book_detail.html'  # Replace with your actual template name
     context_object_name = 'book'  # The name you'll use in the template to refer to the book object
 
+
+class BookDeleteView(DeleteView):
+    model = Book
+    template_name = 'books/book_delete.html'  # Create this template
+    success_url = reverse_lazy('book_list')  # Redirect after successful deletion
+
+
+class BookCreateView(CreateView):
+    model = Book
+    form_class = BookForm
+    template_name = 'books/book_create.html'
+    success_url = reverse_lazy('book-list')
 
 

@@ -4,6 +4,8 @@
     book list
 {% endblock %}
 {% block content %}
+
+    <h1>book list</h1>
     {% for book in books %}
         <a href="{% url  'book-detail' book.slug %}">
             <h3>{{ book.title }} by {{ book.authors }}</h3>
