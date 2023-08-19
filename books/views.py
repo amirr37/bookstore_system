@@ -31,5 +31,3 @@ class BookCreateView(CreateView):
     form_class = BookForm
     template_name = 'books/book_create.html'
     success_url = reverse_lazy('book-list')
-
-
