@@ -14,4 +14,7 @@
     <p>Publication Date: {{ book.publication_date }}</p>
     <p>ISBN: {{ book.isbn }}</p>
     <p>Price: {{ book.price }}</p>
+
+    <a href="{% url  'book-delete' book.slug %}">delete {{ book.title }}</a>
+    <a href="#">edit {{ book.title }}</a>
 {% endblock %}
