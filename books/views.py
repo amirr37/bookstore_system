@@ -12,12 +12,11 @@ class BookListView(ListView):
     context_object_name = 'books'
     paginate_by = 5
 
+
 class BookDetailView(DetailView):
     model = Book
     template_name = 'books/book_detail.html'  # Replace with your actual template name
     context_object_name = 'book'  # The name you'll use in the template to refer to the book object
-
-
 
 
 
