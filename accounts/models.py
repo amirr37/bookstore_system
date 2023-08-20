@@ -12,7 +12,8 @@ class CustomUser(AbstractUser):
         ('Premium', 'Premium'),
     ]
 
-    membership_type = models.CharField(max_length=10, choices=MEMBERSHIP_CHOICES, verbose_name='Membership Type', null=True)
+    membership_type = models.CharField(max_length=10, choices=MEMBERSHIP_CHOICES, verbose_name='Membership Type',
+                                       null=True)
     membership_expiry_date = models.DateField(verbose_name='Membership Expiry Date', null=True)
 
     def __str__(self):
