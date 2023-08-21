@@ -13,9 +13,15 @@ class BookFilter(django_filters.FilterSet):
     city = django_filters.ChoiceFilter(field_name='authors__birthplace', choices=City.objects.values_list('id', 'name'),
                                        label='Author Birthplace')
     ordering = OrderingFilter(fields=(('price', 'Price'),), )
+    search = django_filters.CharFilter(method='filter_by_search', label='Search')
 
     def filter_by_author_name(self, queryset, name, value):
         return queryset.filter(Q(authors__first_name__icontains=value) | Q(authors__last_name__icontains=value))
+
+    def filter_by_search(self, queryset, name, value):
+        return queryset.filter(
+            Q(title__icontains=value) | Q(description__icontains=value)
+        )
 
     class Meta:
         model = Book

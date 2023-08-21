@@ -11,6 +11,8 @@ class AuthorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Author
         fields = ['id', 'first_name', 'last_name', 'city']
+
+
 class BookSerializer(serializers.Serializer):
     title = serializers.CharField(max_length=200)
     publication_date = serializers.DateField()
@@ -19,9 +21,8 @@ class BookSerializer(serializers.Serializer):
     slug = serializers.SlugField()
 
     genre = serializers.StringRelatedField()  # Display genre title as a string
-    authors = serializers.StringRelatedField(many=True)  # This will display author names as strings
+    # authors = serializers.StringRelatedField(many=True)  # This will display author names as strings
     authors = AuthorSerializer(many=True, read_only=True)
-
 
     # def create(self, validated_data):
     #     return Book.objects.create(**validated_data)
