@@ -42,6 +42,7 @@ class Book(models.Model):
     isbn = models.CharField(max_length=13, verbose_name='ISBN')
     price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Price')
     slug = models.SlugField(unique=True, null=False, blank=False, )
+    description = models.TextField(verbose_name='Description', default="")
 
     def save(self, *args, **kwargs):
         self.slug = slugify(self.title)
