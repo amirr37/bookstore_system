@@ -33,44 +33,6 @@ class UserRegistrationView(APIView):
         return render(request, 'accounts/register.html', {'form': form})
 
 
-class SignupView(View):
-    def get(self, request):
-        context = {'signup_form': SignupForm}
-        return render(request, 'accounts/register.html', context)
-
-    def post(self, request):
-        signup_form = SignupForm(request.POST)
-        if signup_form.is_valid():
-            username = signup_form.cleaned_data['username']
-            email = signup_form.cleaned_data['email']
-            fname = signup_form.cleaned_data['first_name']
-            lname = signup_form.cleaned_data['last_name']
-
-            password = signup_form.cleaned_data['password']
-
-            # Check if a user with the same username already exists
-            if CustomUser.objects.filter(username=username).exists():
-                signup_form.add_error('username', 'Username already exists')
-                context = {'signup_form': signup_form}
-                return render(request, 'accounts/register.html', context)
-
-            # Create a new user object
-            new_user = CustomUser(username=username, email=email, first_name=fname, last_name=lname)
-
-            # Set the password for the new user
-            new_user.set_password(password)
-
-            # Save the new user to the database
-            new_user.save()
-
-            # Redirect the user to a success page or login page
-            return redirect('login')
-
-        # If the form is not valid, re-render the signup page with the form and error messages
-        context = {'signup_form': signup_form}
-        return render(request, 'accounts/register.html', context)
-
-
 class LogoutView(LoginRequiredMixin, View):
     def get(self, request):
         print("yek")
@@ -114,3 +76,40 @@ class LoginView(APIView):
 
 class IndexPageView(LoginRequiredMixin, TemplateView):
     template_name = 'accounts/index.html'
+
+# class SignupView(View):
+#     def get(self, request):
+#         context = {'signup_form': SignupForm}
+#         return render(request, 'accounts/register.html', context)
+#
+#     def post(self, request):
+#         signup_form = SignupForm(request.POST)
+#         if signup_form.is_valid():
+#             username = signup_form.cleaned_data['username']
+#             email = signup_form.cleaned_data['email']
+#             fname = signup_form.cleaned_data['first_name']
+#             lname = signup_form.cleaned_data['last_name']
+#
+#             password = signup_form.cleaned_data['password']
+#
+#             # Check if a user with the same username already exists
+#             if CustomUser.objects.filter(username=username).exists():
+#                 signup_form.add_error('username', 'Username already exists')
+#                 context = {'signup_form': signup_form}
+#                 return render(request, 'accounts/register.html', context)
+#
+#             # Create a new user object
+#             new_user = CustomUser(username=username, email=email, first_name=fname, last_name=lname)
+#
+#             # Set the password for the new user
+#             new_user.set_password(password)
+#
+#             # Save the new user to the database
+#             new_user.save()
+#
+#             # Redirect the user to a success page or login page
+#             return redirect('login')
+#
+#         # If the form is not valid, re-render the signup page with the form and error messages
+#         context = {'signup_form': signup_form}
+#         return render(request, 'accounts/register.html', context)
