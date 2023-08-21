@@ -2,7 +2,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
 from django.views import View
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, DetailView
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -15,7 +15,7 @@ from accounts.serializers import UserRegistrationSerializer
 # Create your views here.
 
 
-# todo :  signup - profile -
+# todo :   profile -
 
 
 class UserRegistrationView(APIView):
@@ -77,39 +77,12 @@ class LoginView(APIView):
 class IndexPageView(LoginRequiredMixin, TemplateView):
     template_name = 'accounts/index.html'
 
-# class SignupView(View):
-#     def get(self, request):
-#         context = {'signup_form': SignupForm}
-#         return render(request, 'accounts/register.html', context)
-#
-#     def post(self, request):
-#         signup_form = SignupForm(request.POST)
-#         if signup_form.is_valid():
-#             username = signup_form.cleaned_data['username']
-#             email = signup_form.cleaned_data['email']
-#             fname = signup_form.cleaned_data['first_name']
-#             lname = signup_form.cleaned_data['last_name']
-#
-#             password = signup_form.cleaned_data['password']
-#
-#             # Check if a user with the same username already exists
-#             if CustomUser.objects.filter(username=username).exists():
-#                 signup_form.add_error('username', 'Username already exists')
-#                 context = {'signup_form': signup_form}
-#                 return render(request, 'accounts/register.html', context)
-#
-#             # Create a new user object
-#             new_user = CustomUser(username=username, email=email, first_name=fname, last_name=lname)
-#
-#             # Set the password for the new user
-#             new_user.set_password(password)
-#
-#             # Save the new user to the database
-#             new_user.save()
-#
-#             # Redirect the user to a success page or login page
-#             return redirect('login')
-#
-#         # If the form is not valid, re-render the signup page with the form and error messages
-#         context = {'signup_form': signup_form}
-#         return render(request, 'accounts/register.html', context)
+
+class UserProfileView(LoginRequiredMixin, DetailView):
+    model = CustomUser
+    template_name = 'accounts/profile.html'
+    context_object_name = 'user'
+
+    def get_object(self, queryset=None):
+        # return self.model.objects.get(username=self.request.user.username)
+        return self.request.user

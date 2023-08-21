@@ -4,6 +4,7 @@ from .models import CustomUser
 
 
 class UserRegistrationSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=255)
     first_name = serializers.CharField(max_length=30)
     last_name = serializers.CharField(max_length=30)
     email = serializers.EmailField()
@@ -30,7 +31,7 @@ class UserRegistrationSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         user = CustomUser.objects.create(
-            username=validated_data['email'],
+            username=validated_data['username'],
             first_name=validated_data['first_name'],
             last_name=validated_data['last_name'],
             email=validated_data['email']

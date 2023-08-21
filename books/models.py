@@ -50,3 +50,6 @@ class Book(models.Model):
 
     def __str__(self):
         return self.title
+
+    class Meta:
+        db_table = 'api_book'  # "appName_moedelName"
