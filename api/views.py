@@ -7,7 +7,7 @@ from rest_framework import generics
 from rest_framework.views import APIView
 from rest_framework.request import Request
 from rest_framework.response import Response
-
+from rest_framework.pagination import PageNumberPagination
 from api.filters import BookFilter
 from api.serializers import BookSerializer
 from books.models import Book
@@ -16,9 +16,9 @@ from books.models import Book
 # Create your views here.
 
 
-
-
 class BookListView(generics.ListAPIView):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
     filterset_class = BookFilter
+    pagination_class = PageNumberPagination
+    pagination_class.page_size = 2

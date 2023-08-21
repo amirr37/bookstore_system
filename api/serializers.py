@@ -19,7 +19,6 @@ class BookSerializer(serializers.Serializer):
     isbn = serializers.CharField(max_length=13)
     price = serializers.DecimalField(max_digits=10, decimal_places=2)
     slug = serializers.SlugField()
-
     genre = serializers.StringRelatedField()  # Display genre title as a string
     # authors = serializers.StringRelatedField(many=True)  # This will display author names as strings
     authors = AuthorSerializer(many=True, read_only=True)
