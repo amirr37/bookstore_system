@@ -4,10 +4,12 @@ from django.shortcuts import render, redirect
 from django.views import View
 from django.views.generic import TemplateView
 from rest_framework.request import Request
+from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from accounts.forms import LoginForm, SignupForm
+from accounts.forms import LoginForm, SignupForm, CustomUserCreationForm
 from accounts.models import CustomUser
+from accounts.serializers import UserRegistrationSerializer
 
 
 # Create your views here.
@@ -15,10 +17,26 @@ from accounts.models import CustomUser
 
 # todo :  signup - profile -
 
+
+class UserRegistrationView(APIView):
+    def post(self, request, format=None):
+        serializer = UserRegistrationSerializer(data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "User registered successfully"})
+        print(serializer.errors)
+        return Response(serializer.errors)
+
+    def get(self, request, format=None):
+        form = CustomUserCreationForm()
+        return render(request, 'accounts/register.html', {'form': form})
+
+
 class SignupView(View):
     def get(self, request):
         context = {'signup_form': SignupForm}
-        return render(request, 'accounts/signup.html', context)
+        return render(request, 'accounts/register.html', context)
 
     def post(self, request):
         signup_form = SignupForm(request.POST)
@@ -34,7 +52,7 @@ class SignupView(View):
             if CustomUser.objects.filter(username=username).exists():
                 signup_form.add_error('username', 'Username already exists')
                 context = {'signup_form': signup_form}
-                return render(request, 'accounts/signup.html', context)
+                return render(request, 'accounts/register.html', context)
 
             # Create a new user object
             new_user = CustomUser(username=username, email=email, first_name=fname, last_name=lname)
@@ -50,7 +68,7 @@ class SignupView(View):
 
         # If the form is not valid, re-render the signup page with the form and error messages
         context = {'signup_form': signup_form}
-        return render(request, 'accounts/signup.html', context)
+        return render(request, 'accounts/register.html', context)
 
 
 class LogoutView(LoginRequiredMixin, View):

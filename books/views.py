@@ -2,11 +2,15 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, DeleteView, CreateView, TemplateView
+from rest_framework import generics
+from accounts.serializers import UserRegistrationSerializer
+
 from books.forms import BookForm
 from books.models import Book
 
 
 # Create your views here.
+
 
 
 class BookListView(LoginRequiredMixin, ListView):
