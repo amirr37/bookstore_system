@@ -3,19 +3,38 @@ from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
 from django.views import View
 from django.views.generic import TemplateView, DetailView
+from rest_framework import status
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from accounts.forms import LoginForm, SignupForm, CustomUserCreationForm
 from accounts.models import CustomUser
-from accounts.serializers import UserRegistrationSerializer
+from accounts.serializers import UserRegistrationSerializer, RequestOTPSerializer, OTPRequest, \
+    RequestOPTResponseSerializer
 
 
 # Create your views here.
 
 
-# todo :   profile -
+# todo :  login
+
+
+class OTPView(APIView):
+    def get(self, request: Request):  # for giving phone number
+        serializer = RequestOTPSerializer(data=request.query_params)
+        if serializer.is_valid():
+            data = serializer.validated_data
+            try:
+                otp = OTPRequest.objects.generate(data)
+                return Response(data=RequestOPTResponseSerializer(otp).data)
+            except Exception as e:
+                return Response(data=serializer.errors, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        def post(self, request):  # for verifying
+            pass
 
 
 class UserRegistrationView(APIView):

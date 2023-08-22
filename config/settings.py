@@ -85,10 +85,10 @@ DATABASES = {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     },
-    'mongodb': {
-        'ENGINE': 'djongo',
-        'NAME': 'bookstore_db',
-    },
+    # 'mongodb': {
+    #     'ENGINE': 'djongo',
+    #     'NAME': 'bookstore_db',
+    # },
 }
 
 DATABASE_ROUTERS = [BASE_DIR / 'mongodb_router.py']
