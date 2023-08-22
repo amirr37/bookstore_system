@@ -17,7 +17,7 @@ class SignupForm(forms.Form):
     first_name = forms.CharField(max_length=100, label="first name")
     last_name = forms.CharField(max_length=100, label="last name")
     password = forms.CharField(widget=forms.PasswordInput, label='Password')
-    confirm_password = forms.CharField(widget=forms.PasswordInput, label='Confirm Password')
+    password2 = forms.CharField(widget=forms.PasswordInput, label='Confirm Password')
 
     def clean(self):
         cleaned_data = super().clean()
