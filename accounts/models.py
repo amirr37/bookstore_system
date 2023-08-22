@@ -5,6 +5,8 @@ import uuid
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
+from accounts.sender import send_otp
+
 
 # Create your models here.
 
@@ -32,6 +34,7 @@ class OTPManager(models.Manager):
     def generate(self, data):
         otp = self.model(channel=data['channel'], receiver=data['receiver'])
         otp.save(using=self._db)
+        send_otp(otp)
         return otp
 
 

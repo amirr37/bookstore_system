@@ -8,10 +8,9 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from accounts.forms import LoginForm, SignupForm, CustomUserCreationForm
+from accounts.forms import LoginForm, SignupForm
 from accounts.models import CustomUser
-from accounts.serializers import UserRegistrationSerializer, RequestOTPSerializer, OTPRequest, \
-    RequestOPTResponseSerializer
+from accounts import serializers
 
 
 # Create your views here.
@@ -22,24 +21,27 @@ from accounts.serializers import UserRegistrationSerializer, RequestOTPSerialize
 
 class OTPView(APIView):
     def get(self, request: Request):  # for giving phone number
-        serializer = RequestOTPSerializer(data=request.query_params)
+        serializer = serializers.RequestOTPSerializer(data=request.query_params)
         if serializer.is_valid():
             data = serializer.validated_data
             try:
-                otp = OTPRequest.objects.generate(data)
-                return Response(data=RequestOPTResponseSerializer(otp).data)
+                otp = serializers.OTPRequest.objects.generate(data)
+                return Response(data=serializers.RequestOPTResponseSerializer(otp).data)
             except Exception as e:
                 return Response(data=serializer.errors, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        def post(self, request):  # for verifying
-            pass
-
+    def post(self, request):  # for verifying
+        serializer = serializers.VerifyOTPRequestSerializer(data=request.data)
+        if serializer.is_valid():
+            data=serializer.validated_data
+            
+            
 
 class UserRegistrationView(APIView):
     def post(self, request, format=None):
-        serializer = UserRegistrationSerializer(data=request.data)
+        serializer = serializers.UserRegistrationSerializer(data=request.data)
 
         if serializer.is_valid():
             serializer.save()
@@ -48,7 +50,7 @@ class UserRegistrationView(APIView):
         return Response(serializer.errors)
 
     def get(self, request, format=None):
-        form = CustomUserCreationForm()
+        form = SignupForm()
         return render(request, 'accounts/register.html', {'form': form})
 
 
