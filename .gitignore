@@ -4,4 +4,6 @@
 # Ignore virtual environment
 venv/
 
+tasks.txt
+
 

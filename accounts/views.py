@@ -35,9 +35,8 @@ class OTPView(APIView):
     def post(self, request):  # for verifying
         serializer = serializers.VerifyOTPRequestSerializer(data=request.data)
         if serializer.is_valid():
-            data=serializer.validated_data
-            
-            
+            data = serializer.validated_data
+
 
 class UserRegistrationView(APIView):
     def post(self, request, format=None):

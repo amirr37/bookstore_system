@@ -15,10 +15,3 @@ from books.models import Book
 
 # Create your views here.
 
-
-class BookListView(generics.ListAPIView):
-    queryset = Book.objects.all()
-    serializer_class = BookSerializer
-    filterset_class = BookFilter
-    pagination_class = PageNumberPagination
-    pagination_class.page_size = 2

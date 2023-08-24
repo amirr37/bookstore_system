@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from xdg.Exceptions import ValidationError
-
+import re
 from .models import CustomUser
 from accounts.models import OTPRequest
 
@@ -39,13 +39,13 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
 
 class RequestOTPSerializer(serializers.Serializer):
-    receiver = serializers.CharField(max_length=50)
-    channel = serializers.ChoiceField(allow_null=False, choices=OTPRequest.OtpChannel.choices)
+    receiver = serializers.CharField(max_length=15)
 
     def validate_receiver(self, value):
-        # Custom validation logic for the receiver field
-        if not value:
-            raise ValidationError("Receiver can't be empty", file=None)
+        # Check if the value is a valid phone number
+        if not re.match(r'^\d{10}$', value):
+            raise serializers.ValidationError("Invalid phone number format. It should be 10 digits.")
+
         return value
 
 
