@@ -44,6 +44,8 @@ class Book(models.Model):
     slug = models.SlugField(unique=True, null=False, blank=False, )
     description = models.TextField(verbose_name='Description', default="")
 
+
+
     def save(self, *args, **kwargs):
         self.slug = slugify(self.title)
         super(Book, self).save(*args, **kwargs)
