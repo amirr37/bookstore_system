@@ -10,7 +10,7 @@ from .serializers import BookSerializer
 from .filters import BookFilter
 
 
-class BookListView(generics.ListAPIView):
+class BookListAPIView(generics.ListAPIView):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
     filterset_class = BookFilter  # Assign the filterset class
@@ -23,13 +23,17 @@ class BookListView(generics.ListAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class BookCreateView(APIView):
+
+
+class BookCreateAPIView(APIView):
     def post(self, request: Request):
         srz_data = BookSerializer(data=request.data)
         if srz_data.is_valid():
-            srz_data.save()
+            # if serializer data is valid , it saves automatically in created method.
             return Response(srz_data.data, status=status.HTTP_201_CREATED)
         return Response(srz_data.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 
 class BookDeleteView(APIView):

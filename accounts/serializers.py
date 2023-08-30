@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
-from xdg.Exceptions import ValidationError
 import re
 from .models import CustomUser
 from accounts.models import OTPRequest

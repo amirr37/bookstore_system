@@ -36,7 +36,7 @@ class Genre(models.Model):
 
 class Book(models.Model):
     title = models.CharField(max_length=200, verbose_name='Title')
-    authors = models.ManyToManyField(Author, related_name='books')  # Many-to-many relationship
+    authors = models.ManyToManyField(Author, related_name='books', )  # Many-to-many relationship
     genre = models.ForeignKey(Genre, on_delete=models.SET_NULL, null=True, verbose_name='Genre')
     publication_date = models.DateField(verbose_name='Publication Date')
     isbn = models.CharField(max_length=13, verbose_name='ISBN')
@@ -52,4 +52,4 @@ class Book(models.Model):
         return self.title
 
     # class Meta:
-        # db_table = 'api_book'  # "appName_moedelName"
+    # db_table = 'api_book'  # "appName_moedelName"

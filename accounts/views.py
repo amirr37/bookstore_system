@@ -94,10 +94,6 @@ class LoginView(APIView):
             return render(request, 'accounts/login.html', {'login_form': login_form})
 
 
-class IndexPageView(LoginRequiredMixin, TemplateView):
-    template_name = 'accounts/index.html'
-
-
 class UserProfileView(LoginRequiredMixin, DetailView):
     model = CustomUser
     template_name = 'accounts/profile.html'
