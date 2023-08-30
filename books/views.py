@@ -26,28 +26,13 @@ class BookCreateAPIView(generics.CreateAPIView):
     serializer_class = BookSerializer
 
 
-# class BookCreateAPIView(APIView):
-#     def post(self, request: Request):
-#         srz_data = BookSerializer(data=request.data)
-#         if srz_data.is_valid():
-#             # if serializer data is valid , it saves automatically in created method.
-#             # srz_data.save()
-#             return Response(srz_data.data, status=status.HTTP_201_CREATED)
-#         return Response(srz_data.errors, status=status.HTTP_400_BAD_REQUEST)
+class BookDeleteAPIView(generics.RetrieveDestroyAPIView):
+    serializer_class = BookSerializer
+    queryset = Book.objects.all()
 
 
-class BookDeleteView(APIView):
-    def delete(self, request, pk):
 
-        try:
-            book = Book.objects.get(pk=pk)
-            book.delete()
-            return Response(data={'message': 'book deleted'}, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response(data={'message': 'no book with this id'}, status=status.HTTP_400_BAD_REQUEST)
-
-
-class BookUpdateView(APIView):
+class BookUpdateAPIView(APIView):
     def put(self, request: Request, pk):
         book = Book.objects.get(pk=pk)
         srz_data = BookSerializer(instance=book, data=request.data, partial=True)
