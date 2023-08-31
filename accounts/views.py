@@ -1,6 +1,9 @@
+from datetime import datetime
+
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
+from django.utils import timezone
 from django.views import View
 from django.views.generic import DetailView
 from rest_framework import status, generics, permissions
@@ -9,9 +12,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from accounts.forms import LoginForm, SignupForm
-from accounts.models import CustomUser
+from accounts.models import CustomUser, OTPRequest
 from accounts import serializers
-from accounts.serializers import CustomUserSerializer, UserRegistrationSerializer
+from accounts.serializers import CustomUserSerializer, UserRegistrationSerializer, OTPLoginSerializer
+import pyotp
 
 
 # Create your views here.
@@ -20,23 +24,23 @@ from accounts.serializers import CustomUserSerializer, UserRegistrationSerialize
 # todo :  login
 
 
-class OTPView(APIView):
-    def get(self, request: Request):  # for giving phone number
-        serializer = serializers.RequestOTPSerializer(data=request.query_params)
-        if serializer.is_valid():
-            data = serializer.validated_data
-            try:
-                otp = serializers.OTPRequest.objects.generate(data)
-                return Response(data=serializers.RequestOPTResponseSerializer(otp).data)
-            except Exception as e:
-                return Response(data=serializer.errors, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        else:
-            return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def post(self, request):  # for verifying
-        serializer = serializers.VerifyOTPRequestSerializer(data=request.data)
-        if serializer.is_valid():
-            data = serializer.validated_data
+# class OTPView(APIView):
+#     def get(self, request: Request):  # for giving phone number
+#         serializer = serializers.RequestOTPSerializer(data=request.query_params)
+#         if serializer.is_valid():
+#             data = serializer.validated_data
+#             try:
+#                 otp = serializers.OTPRequest.objects.generate(data)
+#                 return Response(data=serializers.RequestOPTResponseSerializer(otp).data)
+#             except Exception as e:
+#                 return Response(data=serializer.errors, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+#         else:
+#             return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#
+#     def post(self, request):  # for verifying
+#         serializer = serializers.VerifyOTPRequestSerializer(data=request.data)
+#         if serializer.is_valid():
+#             data = serializer.validated_data
 
 
 #
@@ -115,3 +119,37 @@ class UserProfileAPIView(generics.RetrieveAPIView):
 
     def get_object(self):
         return self.request.user
+
+
+class OTPLoginView(APIView):
+    def post(self, request, *args, **kwargs):
+        serializer = OTPLoginSerializer(data=request.data)
+        if serializer.is_valid():
+            phone_number = serializer.validated_data['phone_number']
+            print(phone_number)
+            # Generate OTP
+            otp_request = OTPRequest(phone_number=phone_number)
+            otp_request.save()
+            print(f"otp code   :   {otp_request.otp_code} ")
+            # In a real-world scenario, you would send the OTP code to the user's phone using SMS, etc.
+            # Here, we'll just return the OTP code for demonstration purposes.
+            return Response({'otp_code': otp_request.otp_code}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, *args, **kwargs):
+        otp_code = request.data.get('otp_code')
+        phone_number = request.data.get('phone_number')  # The original secret used to generate the OTP
+        try:
+            otp_request = OTPRequest.objects.get(phone_number=phone_number, otp_code=otp_code)
+        except Exception:
+            return Response({'message': 'OTP verification failed.'}, status=status.HTTP_401_UNAUTHORIZED)
+        print(otp_request.expire_time)
+        print()
+        if otp_request.expire_time < timezone.now():
+            return Response({'message': 'OTP time expired'}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+
+            return Response({'message': 'OTP verification successful. Grant access.'}, status=status.HTTP_200_OK)
+
+
+
