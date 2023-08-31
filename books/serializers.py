@@ -35,4 +35,3 @@ class BookSerializer(serializers.ModelSerializer):
         if not value.isdigit() or len(value) != 13:
             raise serializers.ValidationError("ISBN must be a 13-digit number.")
         return value
-

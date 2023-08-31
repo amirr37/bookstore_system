@@ -2,8 +2,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
 from django.views import View
-from django.views.generic import TemplateView, DetailView
-from rest_framework import status
+from django.views.generic import DetailView
+from rest_framework import status, generics, permissions
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -11,6 +11,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from accounts.forms import LoginForm, SignupForm
 from accounts.models import CustomUser
 from accounts import serializers
+from accounts.serializers import CustomUserSerializer
 
 
 # Create your views here.
@@ -94,11 +95,10 @@ class LoginView(APIView):
             return render(request, 'accounts/login.html', {'login_form': login_form})
 
 
-class UserProfileView(LoginRequiredMixin, DetailView):
-    model = CustomUser
-    template_name = 'accounts/profile.html'
-    context_object_name = 'user'
+class UserProfileAPIView(generics.RetrieveAPIView):
+    queryset = CustomUser.objects.all()
+    serializer_class = CustomUserSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
-    def get_object(self, queryset=None):
-        # return self.model.objects.get(username=self.request.user.username)
+    def get_object(self):
         return self.request.user

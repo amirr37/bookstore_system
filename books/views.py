@@ -1,4 +1,4 @@
-from rest_framework import generics
+from rest_framework import generics, permissions
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -29,7 +29,6 @@ class BookCreateAPIView(generics.CreateAPIView):
 class BookDeleteAPIView(generics.RetrieveDestroyAPIView):
     serializer_class = BookSerializer
     queryset = Book.objects.all()
-
 
 
 class BookUpdateAPIView(APIView):

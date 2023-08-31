@@ -1,8 +1,14 @@
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 import re
-from .models import CustomUser
+from accounts.models import CustomUser
 from accounts.models import OTPRequest
+
+
+class CustomUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ['first_name', 'last_name', 'membership_type', 'membership_expiry_date']
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
