@@ -11,7 +11,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from accounts.forms import LoginForm, SignupForm
 from accounts.models import CustomUser
 from accounts import serializers
-from accounts.serializers import CustomUserSerializer
+from accounts.serializers import CustomUserSerializer, UserRegistrationSerializer
 
 
 # Create your views here.
@@ -39,19 +39,32 @@ class OTPView(APIView):
             data = serializer.validated_data
 
 
-class UserRegistrationView(APIView):
-    def post(self, request, format=None):
-        serializer = serializers.UserRegistrationSerializer(data=request.data)
+#
+# class UserRegistrationView(APIView):
+#     def post(self, request, format=None):
+#         serializer = UserRegistrationSerializer(data=request.data)
+#
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response({"message": "User registered successfully"})
+#         print(serializer.errors)
+#         return Response(serializer.errors)
+#
+#     def get(self, request, format=None):
+#         form = SignupForm()
+#         return render(request, 'accounts/register.html', {'form': form})
 
+
+class UserRegistrationAPIView(generics.CreateAPIView):
+    serializer_class = UserRegistrationSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response({"message": "User registered successfully"})
-        print(serializer.errors)
-        return Response(serializer.errors)
-
-    def get(self, request, format=None):
-        form = SignupForm()
-        return render(request, 'accounts/register.html', {'form': form})
+            return Response({'message': 'User registered successfully'}, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class LogoutView(LoginRequiredMixin, View):
