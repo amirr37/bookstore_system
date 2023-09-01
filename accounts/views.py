@@ -1,23 +1,11 @@
-from datetime import datetime
-
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth import authenticate, login, logout
-from django.shortcuts import render, redirect
 from django.utils import timezone
-from django.views import View
-from django.views.generic import DetailView
 from rest_framework import status, generics, permissions
-from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.tokens import RefreshToken
-from accounts.forms import LoginForm
 from accounts.models import CustomUser, OTPRequest
-from accounts import serializers
-from accounts.serializers import CustomUserSerializer, UserRegistrationSerializer, OTPLoginSerializer, \
-    TokenResetSerializer
-import pyotp
+from accounts.serializers import CustomUserSerializer, UserRegistrationSerializer, OTPLoginSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
+from accounts.throttling import OTPLoginPostThrottle, OTPLoginPutThrottle
 
 
 def get_tokens_for_user(user):
@@ -53,6 +41,8 @@ class UserProfileAPIView(generics.RetrieveAPIView):
 
 
 class OTPLoginView(APIView):
+    throttle_classes = [OTPLoginPostThrottle]  # Apply throttling to the POST method
+
     def post(self, request):
         serializer = OTPLoginSerializer(data=request.data)
         if serializer.is_valid():
@@ -64,6 +54,27 @@ class OTPLoginView(APIView):
             return Response({'otp_code': otp_request.otp_code}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    throttle_classes = [OTPLoginPutThrottle]  # Apply throttling to the PUT method
+
+    def put(self, request, *args, **kwargs):
+        otp_code = request.data.get('otp_code')
+        phone_number = request.data.get('phone_number')  # The original secret used to generate the OTP
+        try:
+            otp_request = OTPRequest.objects.get(phone_number=phone_number, otp_code=otp_code)
+        except Exception:
+            return Response({'message': 'OTP verification failed.'}, status=status.HTTP_401_UNAUTHORIZED)
+        print(otp_request.expire_time)
+        if otp_request.expire_time < timezone.now():
+            return Response({'message': 'OTP time expired'}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            user = CustomUser.objects.get(phone_number=phone_number)
+            tokens = get_tokens_for_user(user)
+            tokens['message'] = 'OTP verification successful. Grant access.'
+            return Response(data=tokens, status=status.HTTP_200_OK)
+
+
+class OTPVerifyView(APIView):
+    throttle_classes = [OTPLoginPutThrottle]  # Apply throttling to the PUT method
     def put(self, request, *args, **kwargs):
         otp_code = request.data.get('otp_code')
         phone_number = request.data.get('phone_number')  # The original secret used to generate the OTP
