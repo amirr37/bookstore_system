@@ -56,3 +56,16 @@ class OTPLoginSerializer(serializers.Serializer):
         return value
 
 
+class TokenResetSerializer(serializers.Serializer):
+    user_id = serializers.IntegerField(required=True)
+
+    def validate_user_id(self, value):
+        try:
+            # Check if the user with the given user_id exists
+            user = CustomUser.objects.get(id=value)
+        except CustomUser.DoesNotExist:
+            raise serializers.ValidationError("User with this ID does not exist")
+
+        # You can also perform additional validation logic here if needed
+
+        return value
