@@ -25,7 +25,7 @@ class CustomUser(AbstractUser):
     membership_type = models.CharField(max_length=10, choices=MEMBERSHIP_CHOICES, verbose_name='Membership Type',
                                        null=True)
     membership_expiry_date = models.DateField(verbose_name='Membership Expiry Date', null=True)
-    phone_number = PhoneNumberField(blank=True, null=True)
+    phone_number = PhoneNumberField(blank=True, null=True,  unique=True)
 
     def __str__(self):
         return self.get_full_name()

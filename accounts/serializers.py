@@ -45,35 +45,14 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         return user
 
 
-# class RequestOTPSerializer(serializers.Serializer):
-#     receiver = serializers.CharField(max_length=15)
-#
-#     def validate_receiver(self, value):
-#         # Check if the value is a valid phone number
-#         if not re.match(r'^\d{10}$', value):
-#             raise serializers.ValidationError("Invalid phone number format. It should be 10 digits.")
-#
-#         return value
-#
-#
-# class RequestOPTResponseSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = OTPRequest
-#         fields = ['request_id']
-#
-#
-# class VerifyOTPRequestSerializer(serializers.Serializer):
-#     request_id = serializers.UUIDField(allow_null=False)
-#     password = serializers.CharField(max_length=4, allow_null=False)
-#     receiver = serializers.CharField(max_length=64, allow_null=False)
-
-
 class OTPLoginSerializer(serializers.Serializer):
     phone_number = PhoneNumberField()
 
     def validate_phone_number(self, value):
-
         try:
             phone = CustomUser.objects.get(phone_number=value)
-        except Exception:
-            raise serializers.ValidationError("this phone number is not registered")
+        except CustomUser.DoesNotExist:
+            raise serializers.ValidationError("This phone number is not registered")
+        return value
+
+

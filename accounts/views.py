@@ -11,11 +11,23 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from accounts.forms import LoginForm, SignupForm
+from accounts.forms import LoginForm
 from accounts.models import CustomUser, OTPRequest
 from accounts import serializers
 from accounts.serializers import CustomUserSerializer, UserRegistrationSerializer, OTPLoginSerializer
 import pyotp
+from rest_framework_simplejwt.tokens import RefreshToken
+
+
+def get_tokens_for_user(user):
+    refresh = RefreshToken.for_user(user)
+    access_token = str(refresh.access_token)
+    refresh_token = str(refresh)
+
+    return {
+        'refresh': refresh_token,
+        'access': access_token,
+    }
 
 
 # Create your views here.
@@ -122,15 +134,12 @@ class UserProfileAPIView(generics.RetrieveAPIView):
 
 
 class OTPLoginView(APIView):
-    def post(self, request, *args, **kwargs):
+    def post(self, request):
         serializer = OTPLoginSerializer(data=request.data)
         if serializer.is_valid():
             phone_number = serializer.validated_data['phone_number']
-            print(phone_number)
-            # Generate OTP
             otp_request = OTPRequest(phone_number=phone_number)
             otp_request.save()
-            print(f"otp code   :   {otp_request.otp_code} ")
             # In a real-world scenario, you would send the OTP code to the user's phone using SMS, etc.
             # Here, we'll just return the OTP code for demonstration purposes.
             return Response({'otp_code': otp_request.otp_code}, status=status.HTTP_200_OK)
@@ -144,12 +153,10 @@ class OTPLoginView(APIView):
         except Exception:
             return Response({'message': 'OTP verification failed.'}, status=status.HTTP_401_UNAUTHORIZED)
         print(otp_request.expire_time)
-        print()
         if otp_request.expire_time < timezone.now():
             return Response({'message': 'OTP time expired'}, status=status.HTTP_400_BAD_REQUEST)
         else:
-
-            return Response({'message': 'OTP verification successful. Grant access.'}, status=status.HTTP_200_OK)
-
-
-
+            user = CustomUser.objects.get(phone_number=phone_number)
+            tokens = get_tokens_for_user(user)
+            tokens['message'] = 'OTP verification successful. Grant access.'
+            return Response(data=tokens, status=status.HTTP_200_OK)
