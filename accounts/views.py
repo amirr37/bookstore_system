@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 from accounts.models import CustomUser, OTPRequest
 from accounts.serializers import CustomUserSerializer, UserRegistrationSerializer, OTPLoginSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
+
 from accounts.throttling import OTPLoginPostThrottle, OTPLoginPutThrottle
 
 
@@ -54,27 +55,10 @@ class OTPLoginView(APIView):
             return Response({'otp_code': otp_request.otp_code}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    throttle_classes = [OTPLoginPutThrottle]  # Apply throttling to the PUT method
-
-    def put(self, request, *args, **kwargs):
-        otp_code = request.data.get('otp_code')
-        phone_number = request.data.get('phone_number')  # The original secret used to generate the OTP
-        try:
-            otp_request = OTPRequest.objects.get(phone_number=phone_number, otp_code=otp_code)
-        except Exception:
-            return Response({'message': 'OTP verification failed.'}, status=status.HTTP_401_UNAUTHORIZED)
-        print(otp_request.expire_time)
-        if otp_request.expire_time < timezone.now():
-            return Response({'message': 'OTP time expired'}, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            user = CustomUser.objects.get(phone_number=phone_number)
-            tokens = get_tokens_for_user(user)
-            tokens['message'] = 'OTP verification successful. Grant access.'
-            return Response(data=tokens, status=status.HTTP_200_OK)
-
 
 class OTPVerifyView(APIView):
     throttle_classes = [OTPLoginPutThrottle]  # Apply throttling to the PUT method
+
     def put(self, request, *args, **kwargs):
         otp_code = request.data.get('otp_code')
         phone_number = request.data.get('phone_number')  # The original secret used to generate the OTP
