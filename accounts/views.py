@@ -96,6 +96,7 @@ class OTPSMSService2(APIView):
 class OTPSMSService3(APIView):
     throttle_classes = [OTPLoginPostThrottle]  # Apply throttling to the POST method
 
+
     def post(self, request):
         if circuit_breaker_service3.is_open():
             return Response({'error': 'all of our SMS services are shot down. please try again later'},
