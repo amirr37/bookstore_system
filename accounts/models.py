@@ -9,7 +9,6 @@ from django.contrib.auth.models import AbstractUser
 from phonenumber_field.modelfields import PhoneNumberField
 from django.utils import timezone
 
-from accounts.sender import send_otp
 
 
 # Create your models here.
