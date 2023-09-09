@@ -7,9 +7,9 @@ from accounts.serializers import CustomUserSerializer, UserRegistrationSerialize
 from rest_framework_simplejwt.tokens import RefreshToken
 from accounts.throttling import OTPLoginPostThrottle, OTPLoginPutThrottle
 from accounts.circuit_breaker import CircuitBreaker
+from accounts.SMSSender import SMSSender
 
 # Define CircuitBreaker instances for every services
-circuit_breaker_service1 = CircuitBreaker(max_failures=5, reset_timeout=1800)
 circuit_breaker_service2 = CircuitBreaker(max_failures=5, reset_timeout=1800)
 circuit_breaker_service3 = CircuitBreaker(max_failures=5, reset_timeout=1800)
 
@@ -23,6 +23,17 @@ def get_tokens_for_user(user):
         'refresh': refresh_token,
         'access': access_token,
     }
+
+
+def generate_otp(request):
+    serializer = OTPLoginSerializer(data=request.data)
+    if serializer.is_valid():
+        phone_number = serializer.validated_data['phone_number']
+        otp_request = OTPRequest(phone_number=phone_number)
+        otp_request.save()
+        return otp_request
+    else:
+        return serializer.errors
 
 
 class UserRegistrationAPIView(generics.CreateAPIView):
@@ -46,82 +57,74 @@ class UserProfileAPIView(generics.RetrieveAPIView):
         return self.request.user
 
 
+# region SMS_Services
 class OTPSMSService1(APIView):
-    throttle_classes = [OTPLoginPostThrottle]  # Apply throttling to the POST method
+    circuit_breaker = CircuitBreaker()
 
     def post(self, request):
-        if circuit_breaker_service1.is_open():
-            # If Service 1 is unavailable, fall back to Service 2
-            return OTPSMSService2().post(request)
+        otp_request = generate_otp(request)
+        print("service11111111111111111111")
+        print(self.circuit_breaker.failures)
 
-        serializer = OTPLoginSerializer(data=request.data)
-        if serializer.is_valid():
-            phone_number = serializer.validated_data['phone_number']
-            otp_request = OTPRequest(phone_number=phone_number)
-            otp_request.save()
-
-            send_message_success = True
-            # Replace this with your actual SMS sending code for Service 1.
-            if not send_message_success:
-                circuit_breaker_service1.increment_failures()
-            return Response({'otp_code': otp_request.otp_code}, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # Replace this with your actual SMS sending code for Service
+        is_send_message_success = True
+        print(otp_request.otp_code)
+        if is_send_message_success:
+            return Response({'message': "otp code sent successfully"}, status=status.HTTP_200_OK)
+        else:
+            self.circuit_breaker.increment_failures()
+            return SMSServicesManagerView().post(request)
 
 
 class OTPSMSService2(APIView):
-    throttle_classes = [OTPLoginPostThrottle]  # Apply throttling to the POST method
+    circuit_breaker = CircuitBreaker()
 
     def post(self, request):
-        if circuit_breaker_service2.is_open():
-            return OTPSMSService3().post(request)
+        otp_request = generate_otp(request)
+        print("service222222222222222222222222222222")
+        print(self.circuit_breaker.failures)
 
-        serializer = OTPLoginSerializer(data=request.data)
-        if serializer.is_valid():
-            phone_number = serializer.validated_data['phone_number']
-            otp_request = OTPRequest(phone_number=phone_number)
-            otp_request.save()
-
-            otp_code = otp_request.otp_code  # Get the OTP code generated
-
-            send_message_success = True
-            # Replace this with your actual SMS sending code for Service 1.
-            if not send_message_success:
-                circuit_breaker_service1.increment_failures()
-            # For demonstration purposes, we'll just return the OTP code.
-            return Response({'otp_code': otp_code}, status=status.HTTP_200_OK)
-        circuit_breaker_service2.increment_failures()
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # Replace this with your actual SMS sending code for Service
+        is_send_message_success = True
+        print(otp_request.otp_code)
+        if is_send_message_success:
+            return Response({'message': "otp code sent successfully"}, status=status.HTTP_200_OK)
+        else:
+            self.circuit_breaker.increment_failures()
+            return SMSServicesManagerView().post(request)
 
 
 class OTPSMSService3(APIView):
-    throttle_classes = [OTPLoginPostThrottle]  # Apply throttling to the POST method
-
+    circuit_breaker = CircuitBreaker()
 
     def post(self, request):
-        if circuit_breaker_service3.is_open():
-            return Response({'error': 'all of our SMS services are shot down. please try again later'},
-                            status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        otp_request = generate_otp(request)
+        print("service33333333333333333")
+        print(self.circuit_breaker.failures)
+        # Replace this with your actual SMS sending code for Service
+        is_send_message_success = False
+        print(otp_request.otp_code)
+        if is_send_message_success:
+            return Response({'message': "otp code sent successfully"}, status=status.HTTP_200_OK)
+        else:
+            self.circuit_breaker.increment_failures()
+            return SMSServicesManagerView().post(request)
 
-        serializer = OTPLoginSerializer(data=request.data)
-        if serializer.is_valid():
-            phone_number = serializer.validated_data['phone_number']
-            otp_request = OTPRequest(phone_number=phone_number)
-            otp_request.save()
 
-            otp_code = otp_request.otp_code  # Get the OTP code generated
+# endregion
 
-            send_message_success = True
-            # Replace this with your actual SMS sending code for Service 1.
-            if not send_message_success:
-                circuit_breaker_service3.increment_failures()
-            # For demonstration purposes, we'll just return the OTP code.
-            return Response({'otp_code': otp_code}, status=status.HTTP_200_OK)
-        circuit_breaker_service2.increment_failures()
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class SMSServicesManagerView(APIView):
+    # add services here
+    sms_sender = SMSSender(OTPSMSService1(), OTPSMSService2(), OTPSMSService3())
+
+    def post(self, request):
+        service: APIView = self.sms_sender.get_random_service()
+        return service.post(request)
 
 
 class OTPVerifyView(APIView):
-    throttle_classes = [OTPLoginPutThrottle]  # Apply throttling to the PUT method
+    # throttle_classes = [OTPLoginPutThrottle]  # Apply throttling to the PUT method
 
     def put(self, request, *args, **kwargs):
         otp_code = request.data.get('otp_code')
@@ -137,6 +140,7 @@ class OTPVerifyView(APIView):
             user = CustomUser.objects.get(phone_number=phone_number)
             tokens = get_tokens_for_user(user)
             tokens['message'] = 'OTP verification successful. Grant access.'
+
             return Response(data=tokens, status=status.HTTP_200_OK)
 
 

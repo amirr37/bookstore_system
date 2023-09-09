@@ -27,16 +27,34 @@ get_book_by_id_use_case = GetBookByIDUseCase(book_repository)
 get_all_books_use_case = GetAllBooksUseCase(book_repository)
 
 
+class BookRetrieveAPIView(generics.RetrieveAPIView):
+    queryset = Book.objects.all()
+    serializer_class = BookSerializer
+
+    def get_object(self):
+        # Get the book ID from the URL parameter "pk"
+        book_id = self.kwargs.get('pk')
+        # Use the GetBookByIDUseCase to retrieve the book by ID
+        book = get_book_by_id_use_case.execute(book_id)
+
+        # If the book is not found, you can handle the exception or return None
+        if book is None:
+            raise Http404("Book not found")
+        return book
+
+
 class BookListAPIView(generics.ListAPIView):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
     filterset_class = BookFilter  # Assign the filterset class
     pagination_class = PageNumberPagination  # Set the pagination class
-    pagination_class.page_size = 10
+    pagination_class.page_size = 4
 
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())  # Apply filters
-        serializer = self.get_serializer(queryset, many=True)
+        # Use the GetAllBooksUseCase to retrieve all books
+        books = get_all_books_use_case.execute()
+        books = self.filter_queryset(books)
+        serializer = self.get_serializer(books, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -66,22 +84,3 @@ class BookUpdateAPIView(APIView):
 
 class BookCreateAPIView(generics.CreateAPIView):
     serializer_class = BookSerializer
-
-
-class BookRetrieveAPIView(generics.RetrieveAPIView):
-    queryset = Book.objects.all()
-    serializer_class = BookSerializer
-    # Specify allowed HTTP methods (only GET)
-
-    def get_object(self):
-        # Get the book ID from the URL parameter "pk"
-        book_id = self.kwargs.get('pk')
-
-        # Use the GetBookByIDUseCase to retrieve the book by ID
-        book = get_book_by_id_use_case.execute(book_id)
-
-        # If the book is not found, you can handle the exception or return None
-        if book is None:
-            raise Http404("Book not found")
-
-        return book

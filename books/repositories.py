@@ -45,5 +45,9 @@ class DjangoBookRepository(BookRepository):
         except Book.DoesNotExist:
             return None
 
-    def get_all(self):
-        return Book.objects.all()
+    def get_all(self, filters=None):
+        queryset = Book.objects.all()
+        if filters:
+            queryset = queryset.filter(**filters)
+
+        return queryset
