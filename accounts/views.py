@@ -9,10 +9,6 @@ from accounts.throttling import OTPLoginPostThrottle, OTPLoginPutThrottle
 from accounts.circuit_breaker import CircuitBreaker
 from accounts.SMSSender import SMSSender
 
-# Define CircuitBreaker instances for every services
-circuit_breaker_service2 = CircuitBreaker(max_failures=5, reset_timeout=1800)
-circuit_breaker_service3 = CircuitBreaker(max_failures=5, reset_timeout=1800)
-
 
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
@@ -59,12 +55,10 @@ class UserProfileAPIView(generics.RetrieveAPIView):
 
 # region SMS_Services
 class OTPSMSService1(APIView):
-    circuit_breaker = CircuitBreaker()
+    circuit_breaker = CircuitBreaker(service_name='service1')
 
     def post(self, request):
         otp_request = generate_otp(request)
-        print("service11111111111111111111")
-        print(self.circuit_breaker.failures)
 
         # Replace this with your actual SMS sending code for Service
         is_send_message_success = True
@@ -77,12 +71,10 @@ class OTPSMSService1(APIView):
 
 
 class OTPSMSService2(APIView):
-    circuit_breaker = CircuitBreaker()
+    circuit_breaker = CircuitBreaker(service_name='service2')
 
     def post(self, request):
         otp_request = generate_otp(request)
-        print("service222222222222222222222222222222")
-        print(self.circuit_breaker.failures)
 
         # Replace this with your actual SMS sending code for Service
         is_send_message_success = True
@@ -95,12 +87,11 @@ class OTPSMSService2(APIView):
 
 
 class OTPSMSService3(APIView):
-    circuit_breaker = CircuitBreaker()
+    circuit_breaker = CircuitBreaker(service_name='service3')
 
     def post(self, request):
         otp_request = generate_otp(request)
-        print("service33333333333333333")
-        print(self.circuit_breaker.failures)
+
         # Replace this with your actual SMS sending code for Service
         is_send_message_success = False
         print(otp_request.otp_code)
