@@ -2,6 +2,7 @@ import time
 import redis
 import pickle
 
+
 class CircuitBreaker:
     def __init__(self, service_name, max_failures=5, reset_timeout=1800, redis_url='redis://localhost:6379/0'):
         self.service_name = service_name
