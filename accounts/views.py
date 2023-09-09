@@ -8,7 +8,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from accounts.throttling import OTPLoginPostThrottle, OTPLoginPutThrottle
 from accounts.circuit_breaker import CircuitBreaker
 
-# Define CircuitBreaker instances for both services
+# Define CircuitBreaker instances for every services
 circuit_breaker_service1 = CircuitBreaker(max_failures=5, reset_timeout=1800)
 circuit_breaker_service2 = CircuitBreaker(max_failures=5, reset_timeout=1800)
 circuit_breaker_service3 = CircuitBreaker(max_failures=5, reset_timeout=1800)

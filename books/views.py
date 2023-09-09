@@ -22,10 +22,6 @@ class BookListAPIView(generics.ListAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class BookCreateAPIView(generics.CreateAPIView):
-    serializer_class = BookSerializer
-
-
 class BookDeleteAPIView(generics.RetrieveDestroyAPIView):
     serializer_class = BookSerializer
     queryset = Book.objects.all()
