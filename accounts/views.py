@@ -2,6 +2,9 @@ from django.utils import timezone
 from rest_framework import status, generics, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+import accounts.SMSServices
+from accounts.SMSServices import AbstractService, OTPSMSService1
 from accounts.models import CustomUser, OTPRequest
 from accounts.serializers import CustomUserSerializer, UserRegistrationSerializer, OTPLoginSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -19,17 +22,6 @@ def get_tokens_for_user(user):
         'refresh': refresh_token,
         'access': access_token,
     }
-
-
-def generate_otp(request):
-    serializer = OTPLoginSerializer(data=request.data)
-    if serializer.is_valid():
-        phone_number = serializer.validated_data['phone_number']
-        otp_request = OTPRequest(phone_number=phone_number)
-        otp_request.save()
-        return otp_request
-    else:
-        return serializer.errors
 
 
 class UserRegistrationAPIView(generics.CreateAPIView):
@@ -53,65 +45,18 @@ class UserProfileAPIView(generics.RetrieveAPIView):
         return self.request.user
 
 
-# region SMS_Services
-class OTPSMSService1(APIView):
-    circuit_breaker = CircuitBreaker(service_name='service1')
-
-    def post(self, request):
-        otp_request = generate_otp(request)
-
-        # Replace this with your actual SMS sending code for Service
-        is_send_message_success = True
-        print(otp_request.otp_code)
-        if is_send_message_success:
-            return Response({'message': "otp code sent successfully"}, status=status.HTTP_200_OK)
-        else:
-            self.circuit_breaker.increment_failures()
-            return SMSServicesManagerView().post(request)
-
-
-class OTPSMSService2(APIView):
-    circuit_breaker = CircuitBreaker(service_name='service2')
-
-    def post(self, request):
-        otp_request = generate_otp(request)
-
-        # Replace this with your actual SMS sending code for Service
-        is_send_message_success = True
-        print(otp_request.otp_code)
-        if is_send_message_success:
-            return Response({'message': "otp code sent successfully"}, status=status.HTTP_200_OK)
-        else:
-            self.circuit_breaker.increment_failures()
-            return SMSServicesManagerView().post(request)
-
-
-class OTPSMSService3(APIView):
-    circuit_breaker = CircuitBreaker(service_name='service3')
-
-    def post(self, request):
-        otp_request = generate_otp(request)
-
-        # Replace this with your actual SMS sending code for Service
-        is_send_message_success = False
-        print(otp_request.otp_code)
-        if is_send_message_success:
-            return Response({'message': "otp code sent successfully"}, status=status.HTTP_200_OK)
-        else:
-            self.circuit_breaker.increment_failures()
-            return SMSServicesManagerView().post(request)
-
-
-# endregion
-
-
 class SMSServicesManagerView(APIView):
     # add services here
-    sms_sender = SMSSender(OTPSMSService1(), OTPSMSService2(), OTPSMSService3())
+    sms_sender = SMSSender(accounts.SMSServices.OTPSMSService1(),
+                           accounts.SMSServices.OTPSMSService2(),
+                           accounts.SMSServices.OTPSMSService3(), )
 
     def post(self, request):
-        service: APIView = self.sms_sender.get_random_service()
-        return service.post(request)
+        send_message_success = self.sms_sender.execute(request)
+        if send_message_success:
+            return Response({'message': "otp code sent successfully"}, status=status.HTTP_200_OK)
+
+        return Response({'message': "send otp code failed"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class OTPVerifyView(APIView):
